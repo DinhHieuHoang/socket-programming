@@ -7,16 +7,24 @@ from model.client_model import *
 from model.message_model import *
 from model.client_socket_model import *
 
+from client_helper import *
+
+from database.database import *
+
 class Authenticator:
     def __init__(self, socket, address):
         threading.Thread.__init__(self)
         self.socket = socket
         self.address = address
-        self.threads = []
+        self.thread = None
 
     def start_thread(self):
         # TODO: RUn thread here
-        pass
+        self.thread = threading.Thread(name='%s' % self.address[0], target=self.worker)
+        self.thread.start()
+
+    def stop_thread(self):
+        self.thread.join()
 
     def listening(self):
         message = pickle.loads(self.socket.recv(2048))
@@ -51,7 +59,7 @@ class Authenticator:
 
     def logIn(self, message):
         # Get client user from database using username
-        client = DATABASE.getInstance().getClient(message.src)
+        client = DATABASE().get_client(message.src)
 
         if client is not None:
             # User existed
@@ -117,9 +125,9 @@ class Authenticator:
     def signUp(self, message):
         client = ClientObject(json=message)
 
-        if DATABASE.getInstance().getClient(client.username) is None:
+        if DATABASE().get_client(client.username) is None:
             # New user
-            DATABASE.getInstance().addClient(client)
+            DATABASE().add_client(client)
             # create log in message
             msg = MessageObject(json=None,
                                 src=client.username, 

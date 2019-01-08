@@ -1,10 +1,14 @@
+import os
 import json
 import pickle
+from time import gmtime, strftime
 
 from model.client_model import *
 from model.client_socket_model import *
 from model.message_model import *
 from model.blog_model import *
+
+from database.database import *
 
 from constants import *
 
@@ -14,7 +18,7 @@ class ClientHelper:
         self.socket = client_socket
         self.address = address
         
-        DATABASE.getInstance().hookSocket(self.socket)
+        DATABASE().add_client_socket(self.socket)
 
     def start(self):
         # Start this object as thread
@@ -95,7 +99,7 @@ class ClientHelper:
 
     def sendMessage(self, message):
         # send message to friend
-        dest_socket = DATABASE.getInstance().getSocket(message.dest)
+        dest_socket = DATABASE().get_socket(message.dest)
 
         if dest_socket is not None:
             # send "bytestring" of message
@@ -113,7 +117,7 @@ class ClientHelper:
         # search for friend
         query = message['body']
 
-        client_list = DATABASE.getInstance().get_all_client()
+        client_list = DATABASE().get_all_client()
 
         ret = []
 
@@ -135,8 +139,8 @@ class ClientHelper:
         client = message.src
         target = message.dest
 
-        if not DATABASE.getInstance().isFriend(client, target):
-            DATABASE.getInstance.create_friendship(client, target)
+        if not DATABASE().is_friend(client, target):
+            DATABASE().create_friendship(client, target)
 
         msg = MessageObject(json=None,
                             src=SERVER_NAME,
@@ -148,30 +152,109 @@ class ClientHelper:
 
     def removeFriend(self, message):
         # remove a friend from friend list
-        pass
+        client = message.src
+        target = message.dest
+
+        if DATABASE().is_friend(client, target):
+            DATABASE().remove_friendship(client, target)
+
+        msg = MessageObject(json=None,
+                            src=SERVER_NAME,
+                            dest=self.client.username,
+                            action=ACTION_REMOVEFRIEND,
+                            body=STATUS_OK)
+
+        self.socket.send(pickle.dumps(msg))
 
     def retrieveOnline(self, message):
         # get list of online friends
-        pass
+        currently_online = DATABASE().get_online_users()
+
+        friends = DATABASE().get_friend_list(message.src)
+
+        ret = []
+
+        for user in friends:
+            if user in currently_online:
+                ret.append(user)
+
+        msg = MessageObject(json=None,
+                            src=SERVER_NAME,
+                            dest=self.client.username,
+                            action=ACTION_RETRIEVEONLINE,
+                            body=pickle.dumps(ret))
+
+        self.socket.send(pickle.dumps(msg))
 
     def getFriends(self, message):
         # return list of friends
-        pass
+        friends = DATABASE().get_friend_list()
+
+        msg = MessageObject(json=None,
+                            src=SERVER_NAME,
+                            dest=self.client.username,
+                            action=ACTION_GETFRIENDS,
+                            body=pickle.dumps(friends))
+
+        self.socket.send(pickle.dumps(msg))
 
     def postBlog(self, message):
         # post a new blog
-        pass
+        time = strftime("%Y-%m-%d %H:%M:%S", gmtime())
+
+        blog = BlogObject(json=None,
+                            author=message.src,
+                            content=message.body,
+                            date=time)
+
+        DATABASE().add_blog(blog)
+
+        msg = MessageObject(json=None,
+                            src=SERVER_NAME,
+                            dest=self.client.username,
+                            action=ACTION_POSTBLOG,
+                            body=STATUS_OK)
+
+        self.socket.send(pickle.dumps(msg))
 
     def getDetail(self, message):
         # get a client's detail info
-        pass
+        client = DATABASE().get_client(message.body)
+
+        if client is not None:
+            msg = MessageObject(json=None,
+                                src=SERVER_NAME,
+                                dest=self.client.username,
+                                action=ACTION_GETDETAIL,
+                                body=client.exportJson())
+
+            self.socket.send(pickle.dumps(msg))
+
+        else:
+            msg = MessageObject(json=None,
+                                src=SERVER_NAME,
+                                dest=self.client.username,
+                                action=ACTION_GETDETAIL,
+                                body=STATUS_NOTFOUND)
+
+            self.socket.send(pickle.dumps(msg))
+
 
     def getBlog(self, message):
         # get a client's blogs
-        pass
+        blogs = DATABASE().get_blogs(message.body)
+
+        msg = MessageObject(json=None,
+                            src=SERVER_NAME,
+                            dest=self.client.username,
+                            action=ACTION_GETBLOG,
+                            body=pickle.dumps(blogs))
+
+        self.socket.send(pickle.dumps(msg))
 
     def getAvatar(self, message):
         # get a client's avatar
+        # TODO
         pass
 
     def setAvatar(self, message):
@@ -180,3 +263,4 @@ class ClientHelper:
 
     def exit(self):
         print('[INFO] Exitting connection from: %s:%d' % (self.address[0], self.address[1]))
+        DATABASE().remove_client_socket(self.client)
