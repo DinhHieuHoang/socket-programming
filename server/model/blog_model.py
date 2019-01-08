@@ -19,25 +19,25 @@ class BlogObject:
     # Getters
     @property
     def author(self):
-        return self.author
+        return self.__author
 
     @property
     def content(self):
-        return self.content
+        return self.__content
 
     @property
     def date(self):
-        return self.date
+        return self.__date
 
     # Setters
     @author.setter
     def author(self, value):
-        self.author = value
+        self.__author = value
 
     @content.setter
     def content(self, value):
-        self.content = value
+        self.__content = value
 
     @date.setter
     def date(self, value):
-        self.date = value
+        self.__date = value
