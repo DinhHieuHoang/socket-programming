@@ -8,17 +8,17 @@ class ClientSocketObject:
     # Getters
     @property
     def username(self):
-        return self.username
+        return self.__username
 
     @property
     def socket(self):
-        return self.socket
+        return self.__socket
 
     # Setters
     @username.setter
     def username(self, value):
-        self.username = value
+        self.__username = value
 
     @socket.setter
     def socket(self, value):
-        self.socket = value
+        self.__socket = value

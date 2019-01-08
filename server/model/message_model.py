@@ -20,36 +20,36 @@ class MessageObject:
     # Getters
     @property
     def src(self):
-        return self.src
+        return self.__src
 
     @property
     def dest(self):
-        return self.dest
+        return self.__dest
 
     @property
     def action(self):
-        return self.action
+        return self.__action
 
     @property
     def body(self):
-        return self.body
+        return self.__body
 
     # Setters
     @dest.setter
     def dest(self, value):
-        self.dest = value
+        self.__dest = value
     
     @src.setter
     def src(self, value):
-        self.src = value
+        self.__src = value
     
     @action.setter
     def action(self, value):
-        self.action = value
+        self.__action = value
     
     @body.setter
     def body(self, value):
-        self.body = value
+        self.__body = value
 
     
     

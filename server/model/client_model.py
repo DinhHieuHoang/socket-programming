@@ -21,35 +21,35 @@ class ClientObject:
     # Getters
     @property
     def username(self):
-        return self.username
+        return self.__username
 
     @property
     def password(self):
-        return self.password
+        return self.__password
 
     @property
     def dob(self):
-        return self.dob
+        return self.__dob
 
     @property
     def avatar(self):
-        return self.avatar
+        return self.__avatar
 
     # Setters
     @username.setter
     def username(self, value):
-        self.username = value
+        self.__username = value
 
     @password.setter
     def password(self, value):
-        self.password = value
+        self.__password = value
 
     @dob.setter
     def dob(self, value):
-        self.dob = value
+        self.__dob = value
 
     @avatar.setter
     def avatar(self, value):
-        self.avatar = value
+        self.__avatar = value
 
     
