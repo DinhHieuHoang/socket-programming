@@ -5,6 +5,8 @@ from constants import HOST, PORT, BUF_SIZE
 from gui import LoginScreen, SignUpScreen, MainScreen
 from message import TYPE, DATA, RESPONSE, decode_msg
 
+CHAT_SUFFIX = ' - chat'
+
 class Client:
     def __init__(self):
         self.conn = socket(AF_INET, SOCK_STREAM)
@@ -56,7 +58,12 @@ class Client:
                     self.ui_active.confirm_chat(data[0], data[1], data[2])
 
                 elif msg_type == RESPONSE.CHAT:
-                    self.ui_active.receive_chat(data[0], data[1], data[2])
+                    # self.ui_active.receive_chat(data[0], data[1], data[2])
+                    try:
+                        self.ui_active.receive_chat(data[0], data[1], data[2])
+                    except:
+                        receiver = data[0] + CHAT_SUFFIX
+                        self.ui_active.chat(receiver)
 
                 elif msg_type == RESPONSE.PROFILE:
                     self.ui_active.receive_profile(data[0], data[1], data[2], data[3])
